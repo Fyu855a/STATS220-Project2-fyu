@@ -1,0 +1,112 @@
+---
+title: "Project 2"
+author: "Fengning Yu"
+output: html_document
+date: "2023-03-27"
+subtitle: STATS 220 Semester One 2023
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## Introduction
+
+For this report, we focused on learning preferences and habits related to the use of ChatGPT. The form we designed included questions about how users first learned about ChatGPT, how often they used it, and what they used it for.
+
+One guideline for designing forms is to keep questions simple and easy to understand. When designing our form, we tried to use clear and concise language, and made sure to avoid technical jargon or complicated phrasing.
+
+The categorical data generated using our question with check boxes is not strictly "tidy" data because it contains multiple answers in a single column. To tidy this data, we would need to split the column into multiple columns, each containing only one answer.
+
+Link to Google Form: https://forms.gle/z78VQiKsqWsQxeRu6
+
+The data is on: https://raw.githubusercontent.com/Fyu855a/STATS220-Project2-fyu/main/How%20do%20you%20learn%20about%20ChatGPT.csv
+
+
+## Analytics
+
+We first load the dataset and rename the columns in it:
+
+```{r}
+# Read data from URL into data frame
+learning_data <- read_csv("https://raw.githubusercontent.com/Fyu855a/STATS220-Project2-fyu/main/How%20do%20you%20learn%20about%20ChatGPT.csv")
+
+# Rename columns
+learning_data <- learning_data %>%
+  rename(first_learn = `How did you first learn about ChatGPT?`,
+         used_before = `Have you ever used ChatGPT before?`,
+         used_for = `What do you use ChatGPT for? (Select all that apply)`,
+         ease_of_use = `On a scale of 1-5, how easy is it to use ChatGPT?`,
+         helpfulness = `On a scale of 1-5, how helpful do you find ChatGPT?`,
+         issues = `Have you ever encountered any issues or problems while using ChatGPT? (Select all that apply)`)
+
+
+```
+
+Next, we produced two bar charts using the {ggplot2} package to visualize the relationships between various variables. The first bar chart shows how people first learned about ChatGPT and whether they've used it before. The chart indicates that most people learned about ChatGPT through social media, and among those who learned about it through social media, the majority have used it before. 
+
+```{r}
+
+# Calculate percentage for each category
+learning_data_pct <- learning_data %>%
+  group_by(first_learn) %>%
+  summarize(n = n()) %>%
+  mutate(percentage = n / sum(n))
+
+# Generate bar chart of first learning source with rotated text on x-axis
+ggplot(learning_data_pct, aes(x = first_learn, y = percentage)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  labs(title = "How People First Learned About ChatGPT",
+       x = NULL,
+       y = "Percentage") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+        axis.title.y = element_text(margin = margin(r = 10))) +
+  scale_y_continuous(labels = scales::percent)
+
+
+```
+
+
+The second bar chart shows the frequency for using ChatGPT by prior usage. The chart indicates that most of people use ChatGPT frequently.
+
+```{r}
+
+# Calculate percentage for ChatGPT usage
+learning_data_usage_pct <- learning_data %>%
+  group_by(used_before) %>%
+  summarize(n = n()) %>%
+  mutate(percentage = n / sum(n))
+
+# Generate bar chart of ChatGPT usage with rotated text on x-axis
+ggplot(learning_data_usage_pct, aes(x = fct_recode(used_before, "Rarely" = "Yes, rarely", "Frequently" = "Yes, frequently"), y = percentage)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  labs(title = "ChatGPT Usage Frequency",
+       x = NULL,
+       y = "Percentage") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+        axis.title.y = element_text(margin = margin(r = 10))) +
+  scale_y_continuous(labels = scales::percent)
+```
+
+Later, we find that most of people think that ChatGPT is easy to use and helpful from their ratings.
+
+```{r}
+# Extract numeric values from ease of use and helpfulness columns
+learning_data$ease_of_use <- as.numeric(gsub("\\D", "", learning_data$ease_of_use))
+learning_data$helpfulness <- as.numeric(gsub("\\D", "", learning_data$helpfulness))
+
+mean_ease_of_use <- mean(learning_data$ease_of_use, na.rm = TRUE)
+median_helpfulness <- median(learning_data$helpfulness)
+mean_ease_of_use
+median_helpfulness
+```
+
+## Learning reflection
+Module 2, "Creating Dynamic Reporting Systems," taught us that it's important to make reports that are interactive and can be changed to fit the needs of the end user. By giving users the option to filter and sort data, we can make reports more useful and relevant to their needs. In our project, we used the "ggplot" functions to make bar charts that were both interesting to look at and easy to compare and understand.
+
+In many ways, our project also showed how creative we can be. First, we used regex to pull numbers out of the columns for ease of use and helpfulness. This let us calculate summary values based on these variables. We also used percentages to get a better idea of how the answers to certain questions were spread out. These techniques went above and beyond what was needed for the project and gave us a deeper look at our data.
+
+"Showing creativity" means going above and beyond what is expected and using skills and knowledge you don't have to add value to a project. In our project, we not only made a form that worked and looked at the data, but we also used advanced techniques to get the data and look at it, and we showed our results in a way that was both visually appealing and interactive.
+
